@@ -901,17 +901,19 @@ function olConfirmName() {
 /* ========== ESCUCHAR SALAS ABIERTAS ========== */
 function olListenRooms() {
     if (!OL.db) return;
-    OL.db.ref('rooms').orderByChild('status').equalTo('waiting').on('value', function(snap) {
+    /* Escuchar TODAS las salas y filtrar 'waiting' en el cliente.
+       Evita necesitar el índice .indexOn en las reglas de Firebase. */
+    OL.db.ref('rooms').on('value', function(snap) {
         var list = $('olRoomList');
         list.innerHTML = '';
         var found = false;
         snap.forEach(function(child) {
             var room = child.val();
-            // No mostrar la propia sala si ya estamos esperando
-            if (child.key === OL.roomId) return;
+            if (room.status !== 'waiting') return;   // solo salas abiertas
+            if (child.key === OL.roomId) return;     // no mostrar la propia sala
             found = true;
             var div = document.createElement('div');
-            div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(18,16,28,.7);border:1px solid rgba(201,168,76,.12);border-radius:8px;padding:.35rem .6rem;cursor:pointer;transition:all .2s';
+            div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(18,16,28,.7);border:1px solid rgba(201,168,76,.12);border-radius:8px;padding:.35rem .6rem;transition:all .2s';
             div.innerHTML =
                 '<span style="font-size:.72rem;color:#e8e0d0"><i class="fas fa-user" style="color:var(--g);margin-right:5px;font-size:.6rem"></i>' + escHtml(room.p1Name) + '</span>' +
                 '<span style="font-family:Cinzel,serif;font-size:.65rem;color:var(--gd);letter-spacing:.1em">' + child.key + '</span>' +
@@ -921,7 +923,7 @@ function olListenRooms() {
             list.appendChild(div);
         });
         if (!found) {
-            list.innerHTML = '<p id="olNoRooms" style="font-size:.7rem;color:#4a4060;text-align:center;padding:.5rem">No hay salas abiertas. ¡Crea una!</p>';
+            list.innerHTML = '<p style="font-size:.7rem;color:#4a4060;text-align:center;padding:.5rem">No hay salas abiertas. ¡Crea una!</p>';
         }
     });
 }
@@ -998,8 +1000,9 @@ function olJoinRoom(code) {
     var ref = OL.db.ref('rooms/' + code);
 
     ref.transaction(function(room) {
-        /* Si la sala no existe o ya no está en 'waiting', abortar sin modificar */
-        if (!room) return;                          // sala no existe → abortar
+        /* Firebase puede pasar null la primera vez (sin caché local).
+           Devolver undefined aborta la transacción sin escribir — correcto. */
+        if (room === null) return;                  // sala no existe → abortar
         if (room.status !== 'waiting') return;      // ya llena / en juego → abortar
         if (room.p2Name && room.p2Name !== '') return; // ya tiene p2 → abortar (doble seguro)
 
@@ -1036,10 +1039,8 @@ function olJoinRoom(code) {
 
         ref.onDisconnect().update({ status: 'abandoned' });
         setTimeout(olStartOnlineGame, 1200);
-    });
+    }, false);  /* applyLocally:false → siempre va al servidor, nunca usa caché local */
 }
-
-/* ========== CANCELAR SALA ========== */
 function olCancelRoom() {
     if (OL.roomRef) { OL.roomRef.remove(); OL.roomRef = null; }
     OL.roomId = null;
@@ -1154,7 +1155,10 @@ function olSendCard(card) {
 
 /* ========== LIMPIAR ESTADO ONLINE AL SALIR ========== */
 function olCleanup() {
+    /* Detener listener de lista de salas */
+    if (OL.db) OL.db.ref('rooms').off();
     if (OL.roomRef) {
+        OL.roomRef.off();
         OL.roomRef.child('p2Pick').off();
         OL.roomRef.child('p1Pick').off();
         OL.roomRef.child('status').off();
@@ -1164,7 +1168,6 @@ function olCleanup() {
     OL.roomId = null;
     OL.playerSlot = null;
     $('olWaitScr').style.display = 'none';
-    OL.db && OL.db.ref('rooms').off();
 }
 
 /* ===== ESCAPE HTML (seguridad) ===== */
