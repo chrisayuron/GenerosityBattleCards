@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cartas de Virtud</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Quicksand:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cw:138px;--ch:196px;--g:#c9a84c;--gl:#f0d060;--gd:#8b6914;--at:#00e676;--df:#ff1744}
+@media(max-width:640px){:root{--cw:92px;--ch:132px}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Quicksand',sans-serif;background:#080610;color:#e8e0d0;overflow-x:hidden;min-height:100vh}
+#bgC{position:fixed;inset:0;z-index:0;pointer-events:none}
+.scr{position:relative;z-index:1}
+#menuScr{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;text-align:center;padding:1.5rem}
+.tmain{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.5rem,4.5vw,2.8rem);background:linear-gradient(135deg,var(--gl),var(--g),var(--gd));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tsub{font-size:clamp(.7rem,1.5vw,.9rem);color:#9a8e7a;max-width:400px}
+.mbtn{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.7rem 1.3rem;border-radius:10px;border:1.5px solid var(--gd);background:rgba(18,16,28,.7);color:#e8e0d0;cursor:pointer;transition:all .3s;min-width:140px}
+.mbtn:hover{border-color:var(--g);background:rgba(201,168,76,.08);transform:translateY(-2px)}
+.mbtn i{font-size:1.2rem;color:var(--g)}.mbtn span{font-weight:600;font-size:.8rem}
+.btn-p{font-family:'Cinzel',serif;font-weight:700;padding:.6rem 1.8rem;border-radius:8px;background:linear-gradient(135deg,var(--g),var(--gd));color:#0a0a0f;border:none;cursor:pointer;font-size:.85rem;transition:all .3s}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,76,.3)}
+.btn-s{font-weight:600;padding:.4rem 1rem;border-radius:8px;background:transparent;color:var(--g);border:1.5px solid var(--gd);cursor:pointer;font-size:.75rem;transition:all .3s}
+.btn-s:hover{background:rgba(201,168,76,.1)}
+#blockScr{position:fixed;inset:0;z-index:60;background:rgba(6,4,12,.98);display:none;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;padding:2rem}
+#blockScr.on{display:flex}
+#blockScr h2{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.2rem,3.5vw,1.8rem);color:var(--gl)}
+#blockScr p{color:#7a7090;font-size:.9rem;max-width:320px}
+#gameScr{min-height:100vh;display:none;flex-direction:column;padding:.4rem}
+#gameScr.on{display:flex}
+.sbar{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.3rem .5rem;border-radius:8px;background:rgba(18,16,28,.85);border:1px solid rgba(201,168,76,.1);margin-bottom:.2rem;flex-wrap:wrap}
+.sp{display:flex;align-items:center;gap:.25rem;font-family:'Cinzel',serif;font-weight:700;font-size:.85rem}
+.sn{font-size:1.15rem;min-width:18px;text-align:center}.sn.pop{animation:spop .4s ease}
+.sdiv{color:#4a4060;font-size:.65rem}
+.alab{font-size:.5rem;text-transform:uppercase;letter-spacing:.1em;color:#5a5070;font-weight:600;text-align:center}
+.aiar,.plar{display:flex;align-items:center;justify-content:center;gap:.25rem;padding:.15rem 0;flex-wrap:wrap;min-height:calc(var(--ch) + 4px)}
+.bzone{flex:1;display:flex;align-items:stretch;justify-content:center;gap:.4rem;border-radius:12px;background:radial-gradient(ellipse at center,rgba(201,168,76,.03),transparent 70%);border:1px solid rgba(201,168,76,.04);margin:.15rem 0;min-height:220px;position:relative;overflow:hidden}
+@media(max-width:640px){.bzone{flex-direction:column;min-height:auto;gap:.25rem;padding:.3rem 0}}
+.bslot{width:var(--cw);height:var(--ch);flex-shrink:0;position:relative}
+.bempty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem;color:#3a3450;width:100%;height:100%}
+.bempty i{font-size:1.6rem;animation:ep 2.5s ease-in-out infinite}
+.cp{flex:1;max-width:260px;display:none;flex-direction:column;gap:.15rem;padding:.35rem;border-radius:8px;background:rgba(12,10,20,.75);border:1px solid rgba(201,168,76,.06);justify-content:center;min-height:150px}
+.cp.on{display:flex}
+.cpt{font-family:'Cinzel',serif;font-weight:700;font-size:.5rem;color:var(--g);text-align:center;letter-spacing:.08em;text-transform:uppercase}
+.cr2{display:flex;align-items:center;gap:.15rem;font-size:clamp(.42rem,.9rem,.58rem);opacity:0;transform:translateY(4px);transition:all .3s ease}
+.cr2.vis{opacity:1;transform:translateY(0)}
+.cl{font-weight:700;min-width:36px;text-align:right}
+.cv{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(.55rem,1.2rem,.72rem);min-width:22px;text-align:center}
+.cvs{color:#4a4060;font-size:.45rem;font-weight:700}
+.cres{font-weight:700;font-size:clamp(.42rem,.85rem,.54rem);padding:1px 2px;border-radius:3px;white-space:nowrap}
+.cres.ok{background:rgba(0,230,118,.15);color:var(--at)}.cres.no{background:rgba(255,23,68,.15);color:var(--df)}
+.cdv{height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.18),transparent);margin:.1rem 0;opacity:0;transition:opacity .3s}.cdv.vis{opacity:1}
+.cfin{text-align:center;font-family:'Cinzel',serif;font-weight:900;font-size:clamp(.65rem,1.6rem,.88rem);padding:.15rem .3rem;border-radius:5px;opacity:0;transform:scale(.8);transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+.cfin.vis{opacity:1;transform:scale(1)}
+.cfin.win{color:var(--gl);background:rgba(240,208,96,.1);text-shadow:0 0 10px rgba(240,208,96,.3)}
+.cfin.lose{color:var(--df);background:rgba(255,23,68,.08);text-shadow:0 0 10px rgba(255,23,68,.3)}
+.cfin.draw{color:#60a5fa;background:rgba(96,165,250,.08)}
+.crea{text-align:center;font-size:clamp(.38rem,.78rem,.5rem);color:#8a82a0;opacity:0;transition:opacity .4s .1s;line-height:1.1}.crea.vis{opacity:1}
+.bfl{position:absolute;inset:0;border-radius:12px;opacity:0;pointer-events:none;z-index:15}.bfl.on{animation:flB .4s ease-out forwards}
+.rhb{display:flex;align-items:center;justify-content:center;gap:.15rem;padding:.1rem 0;min-height:20px;flex-wrap:wrap}
+.rhi{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.4rem;font-weight:800;opacity:0;transform:scale(0);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.rhi.vis{opacity:1;transform:scale(1)}
+.rhi.rw{background:rgba(0,230,118,.2);color:var(--at);border:1px solid rgba(0,230,118,.25)}
+.rhi.rl{background:rgba(255,23,68,.2);color:var(--df);border:1px solid rgba(255,23,68,.25)}
+.rhi.rd{background:rgba(96,165,250,.2);color:#60a5fa;border:1px solid rgba(96,165,250,.25)}
+.gc{width:var(--cw);height:var(--ch);border-radius:10px;position:relative;background:linear-gradient(160deg,#1c1628,#0e0b16);border:2px solid var(--gd);overflow:hidden;cursor:default;display:flex;flex-direction:column;box-shadow:0 4px 12px rgba(0,0,0,.5);transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s,border-color .3s,opacity .4s;flex-shrink:0}
+.gc::before{content:'';position:absolute;top:0;left:0;right:0;height:28%;background:linear-gradient(180deg,rgba(201,168,76,.04),transparent);pointer-events:none;z-index:1}
+.gc.ck{cursor:pointer}.gc.ck:hover{transform:translateY(-10px) scale(1.03);box-shadow:0 10px 25px rgba(201,168,76,.15);border-color:var(--g)}
+.gc.sl2{transform:translateY(-12px) scale(1.04);border-color:var(--gl);box-shadow:0 0 16px rgba(240,208,96,.25)}
+.gc.wg{border-color:var(--gl);animation:wg .8s ease-in-out infinite}
+.gc.ld{opacity:.2;filter:grayscale(.8);transform:scale(.95)}
+.gc.bu{animation:sU .4s cubic-bezier(.34,1.56,.64,1) forwards}
+.gc.bf{animation:cF .45s ease forwards}
+.gc .nm{font-family:'Cinzel',serif;font-weight:700;font-size:clamp(.38rem,.95rem,.55rem);text-align:center;padding:3px 2px 1px;color:var(--gl);position:relative;z-index:2;line-height:1.1}
+.gc .il{margin:1px 4px;height:calc(var(--ch)*.28);border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;z-index:2}
+.gc .il i{font-size:clamp(.9rem,2.2vw,1.4rem);filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+.gc .ds{font-size:clamp(.32rem,.7rem,.4rem);text-align:center;padding:0 3px;color:#7a7090;position:relative;z-index:2;line-height:1.1}
+.gc .sts{display:flex;align-items:center;justify-content:space-around;padding:1px 3px 3px;position:relative;z-index:2;margin-top:auto}
+.st2{display:flex;flex-direction:column;align-items:center;gap:0}
+.sl2l{font-size:.32rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.sl2l.a{color:var(--at)}.sl2l.d{color:var(--df)}
+.shx{width:clamp(18px,4vw,28px);height:clamp(18px,4vw,28px);background:linear-gradient(135deg,#00e676,#00c853);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;font-weight:800;color:#0a0a0f;font-size:clamp(.36rem,.85rem,.52rem);font-family:'Cinzel',serif;transition:all .3s}
+.scc{width:clamp(18px,4vw,28px);height:clamp(18px,4vw,28px);background:linear-gradient(135deg,#ff1744,#d50000);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:clamp(.36rem,.85rem,.52rem);font-family:'Cinzel',serif;transition:all .3s}
+.strs{position:absolute;top:2px;right:2px;z-index:3;display:flex;gap:0}
+.strs i{font-size:clamp(.2rem,.45rem,.28rem)}
+.strs .s1{color:#9a8e7a}.strs .s2{color:#60a5fa}.strs .s3{color:#a855f7}.strs .s4{color:var(--gl)}
+.shx.hi{animation:aP 1s ease-in-out infinite}.scc.hi{animation:dP 1s ease-in-out infinite}
+.cb{width:var(--cw);height:var(--ch);border-radius:10px;border:2px solid var(--gd);background:radial-gradient(ellipse at center,rgba(201,168,76,.08),transparent 65%),repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(201,168,76,.03) 4px,rgba(201,168,76,.03) 5px),repeating-linear-gradient(-45deg,transparent,transparent 4px,rgba(201,168,76,.03) 4px,rgba(201,168,76,.03) 5px),linear-gradient(160deg,#1c1628,#0e0b16);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .4s;position:relative;overflow:hidden}
+.cb::before{content:'';position:absolute;inset:3px;border:1px solid rgba(201,168,76,.06);border-radius:5px}
+.cb i{font-size:1.1rem;color:rgba(201,168,76,.1)}.cb.rm{opacity:0;transform:scale(.7)}
+.atk-pj{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--at);box-shadow:0 0 12px var(--at),0 0 25px rgba(0,230,118,.3);z-index:30;pointer-events:none}
+.def-sh{position:absolute;width:40px;height:40px;border-radius:50%;border:3px solid var(--df);box-shadow:0 0 10px var(--df),inset 0 0 10px rgba(255,23,68,.2);z-index:29;pointer-events:none;opacity:0}
+.atk-pj.hit{animation:projHit .5s ease forwards}.def-sh.blk{animation:shldBlk .6s ease forwards}
+.shake{animation:shk .4s ease}
+@keyframes projHit{0%{transform:scale(1);opacity:1}50%{transform:scale(2);opacity:.8}100%{transform:scale(.3);opacity:0}}
+@keyframes shldBlk{0%{transform:scale(.5);opacity:0}30%{transform:scale(1.2);opacity:1}50%{transform:scale(1);opacity:.8}100%{transform:scale(1.3);opacity:0}}
+@keyframes shk{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+#endScr{min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;gap:.7rem;text-align:center;padding:1.5rem}
+#endScr.on{display:flex}
+.eico{font-size:2.5rem;animation:eB 1s ease-out}
+.etit{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.2rem,3.5vw,2rem)}
+.esc{display:flex;gap:1rem;font-size:1rem;font-family:'Cinzel',serif;font-weight:700}
+#toasts{position:fixed;top:.5rem;right:.5rem;z-index:200;display:flex;flex-direction:column;gap:.2rem}
+.tst{padding:.35rem .6rem;border-radius:5px;font-size:.7rem;font-weight:600;animation:tI .3s ease-out;box-shadow:0 3px 12px rgba(0,0,0,.4);max-width:240px}
+.tst.i{background:#1a2744;border:1px solid #2563eb;color:#93c5fd}
+.tst.w{background:#332a14;border:1px solid #d97706;color:#fde68a}
+@keyframes spop{0%{transform:scale(1)}40%{transform:scale(1.5)}100%{transform:scale(1)}}
+@keyframes ep{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.6;transform:scale(1.05)}}
+@keyframes wg{0%,100%{box-shadow:0 0 8px rgba(201,168,76,.3)}50%{box-shadow:0 0 22px rgba(240,208,96,.5)}}
+@keyframes flB{0%{background:radial-gradient(ellipse at center,rgba(201,168,76,.6),transparent 70%);opacity:.85}100%{opacity:0}}
+@keyframes sU{from{transform:translateY(45px) scale(.8);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes cF{0%{transform:rotateY(180deg) scale(.8);opacity:.4}100%{transform:rotateY(0) scale(1);opacity:1}}
+@keyframes tI{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes eB{0%{transform:scale(0) rotate(-10deg);opacity:0}50%{transform:scale(1.1) rotate(3deg);opacity:1}100%{transform:scale(1)}}
+@keyframes fI{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes aP{0%,100%{box-shadow:0 0 2px rgba(0,230,118,.3);transform:scale(1)}50%{box-shadow:0 0 10px rgba(0,230,118,.5);transform:scale(1.08)}}
+@keyframes dP{0%,100%{box-shadow:0 0 2px rgba(255,23,68,.3);transform:scale(1)}50%{box-shadow:0 0 10px rgba(255,23,68,.5);transform:scale(1.08)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--gd);border-radius:2px}
+</style>
+</head>
+<body>
+<canvas id="bgC" aria-hidden="true"></canvas>
+
+<!-- MENU PRINCIPAL -->
+<div id="menuScr" class="scr">
+<h1 class="tmain">Cartas de Virtud</h1>
+<p class="tsub">Batalla de habilidades sociales entre dos jugadores.</p>
+<div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem">
+<div class="mbtn" onclick="startLocal()"><i class="fas fa-people-arrows"></i><span>Jugador vs Jugador</span></div>
+<div class="mbtn" onclick="startAI()"><i class="fas fa-robot"></i><span>Jugador vs Maquina</span></div>
+</div>
+<div style="margin-top:1rem;max-width:380px;text-align:left">
+<button class="btn-s" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="width:100%"><i class="fas fa-circle-question mr-1"></i> Reglas</button>
+<div style="display:none;margin-top:.4rem;padding:.5rem;background:rgba(12,10,20,.6);border-radius:8px;border:1px solid rgba(201,168,76,.06);font-size:.7rem;color:#8a82a0;line-height:1.45">
+<strong style="color:var(--gl)">Doble comparacion:</strong> Tu ATK vs Su DEF, luego Su ATK vs Tu DEF.<br>
+Solo tu penetras = <strong style="color:var(--at)">Ganas</strong> | Solo rival = <strong style="color:var(--df)">Pierdes</strong><br>
+Ambos penetran = mayor ATK gana | Ninguno = mayor DEF gana | Todo igual = empate
+</div>
+</div>
+</div>
+
+<!-- PANTALLA DE BLOQUEO entre turnos -->
+<div id="blockScr">
+<i class="fas fa-hand-point-right" style="font-size:2.5rem;color:var(--g);opacity:.4"></i>
+<h2 id="blkTitle">Pasa el dispositivo</h2>
+<p id="blkText">Al otro jugador para que elija su carta.</p>
+<button class="btn-p" onclick="unblock()" style="margin-top:.5rem"><i class="fas fa-eye mr-1"></i> Soy yo, mostrar</button>
+</div>
+
+<!-- PANTALLA DE JUEGO -->
+<div id="gameScr" class="scr">
+<div class="sbar">
+<div class="sp"><i class="fas fa-user" style="color:var(--g);font-size:.65rem"></i><span style="font-size:.6rem;color:#9a8e7a" id="pLbl">Tu</span><span class="sn" id="pSc" style="color:var(--gl)">0</span></div>
+<div class="sdiv" id="rI">Ronda 1/5</div>
+<div class="sp"><span class="sn" id="aSc" style="color:var(--df)">0</span><span style="font-size:.6rem;color:#9a8e7a" id="aLbl">Rival</span><i class="fas fa-robot" style="color:var(--df);font-size:.65rem" id="aIco"></i></div>
+</div>
+<div class="alab" id="aLab">Cartas del Rival</div>
+<div class="aiar" id="aiA"></div>
+<div class="bzone" id="bZ">
+<div class="bempty" id="bE"><i class="fas fa-shield-halved"></i><p>Selecciona una carta</p></div>
+<div class="bslot" id="pSl" style="display:none"></div>
+<div class="cp" id="cP"></div>
+<div class="bslot" id="aSl" style="display:none"></div>
+<div class="bfl" id="bF"></div>
+</div>
+<div class="rhb" id="rH"></div>
+<div class="alab" id="pLab">Tus Cartas</div>
+<div class="plar" id="pA"></div>
+</div>
+
+<!-- PANTALLA FINAL -->
+<div id="endScr" class="scr">
+<div class="eico" id="eI"></div>
+<h2 class="etit" id="eT"></h2>
+<p id="eS" style="color:#7a7090;max-width:360px"></p>
+<div class="esc" id="eSc"></div>
+<div id="eH" style="margin-top:.2rem;max-width:400px"></div>
+<div class="flex gap-3 mt-3"><button class="btn-p" onclick="goMenu()">Menu</button></div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+/* ========== BASE DE DATOS DE CARTAS ========== */
+var CD=[
+{nm:"Sinceramente Agradecer",ic:"fa-hands-clapping",at:450,df:300,ds:"Expresar gratitud genuina",gf:"#92400e",gt:"#78350f",cl:"#f59e0b",r:2},
+{nm:"Ceder el Asiento",ic:"fa-couch",at:350,df:550,ds:"Dar tu lugar en el transporte",gf:"#115e59",gt:"#134e4a",cl:"#14b8a6",r:2},
+{nm:"Compartir Alimentos",ic:"fa-cookie-bite",at:500,df:250,ds:"Repartir lo que tienes",gf:"#9f1239",gt:"#881337",cl:"#fb7185",r:2},
+{nm:"Ayudar con Tareas",ic:"fa-book-open",at:600,df:400,ds:"Colaborar en el trabajo",gf:"#78350f",gt:"#713f12",cl:"#d97706",r:3},
+{nm:"Servir como Voluntario",ic:"fa-hand-holding-heart",at:700,df:500,ds:"Dedicar tiempo a la comunidad",gf:"#991b1b",gt:"#7f1d1d",cl:"#f87171",r:3},
+{nm:"Enseñar una Habilidad",ic:"fa-chalkboard-user",at:550,df:650,ds:"Transmitir tu conocimiento",gf:"#854d0e",gt:"#713f12",cl:"#fbbf24",r:3},
+{nm:"Organizar Eventos",ic:"fa-calendar-check",at:400,df:700,ds:"Planificar actividades grupales",gf:"#164e63",gt:"#155e75",cl:"#22d3ee",r:3},
+{nm:"Donar Bienes",ic:"fa-gifts",at:650,df:450,ds:"Dar a quien lo necesita",gf:"#9f1239",gt:"#be123c",cl:"#fda4af",r:3},
+{nm:"Ayuda Anónima",ic:"fa-mask",at:500,df:800,ds:"Ayudar sin buscar credito",gf:"#374151",gt:"#1f2937",cl:"#9ca3af",r:4},
+{nm:"Rescatar Animales",ic:"fa-paw",at:750,df:350,ds:"Proteger a los seres vivos",gf:"#166534",gt:"#14532d",cl:"#4ade80",r:4},
+{nm:"Escribir una Carta",ic:"fa-envelope-open-text",at:300,df:600,ds:"Expresar sentimientos por escrito",gf:"#92400e",gt:"#a16207",cl:"#facc15",r:2},
+{nm:"Ordenar el Espacio",ic:"fa-broom",at:250,df:500,ds:"Mantener limpio tu entorno",gf:"#115e59",gt:"#0f766e",cl:"#2dd4bf",r:1},
+{nm:"Plantar Árboles",ic:"fa-tree",at:600,df:600,ds:"Contribuir al medio ambiente",gf:"#166534",gt:"#15803d",cl:"#22c55e",r:3},
+{nm:"Recoger Basura",ic:"fa-recycle",at:450,df:550,ds:"Limpiar espacios publicos",gf:"#166534",gt:"#0d9488",cl:"#34d399",r:2},
+{nm:"Cuidar a los Ancianos",ic:"fa-person-cane",at:550,df:750,ds:"Brindar compania y apoyo",gf:"#9a3412",gt:"#7c2d12",cl:"#fb923c",r:4},
+{nm:"Ayudar al Vecino",ic:"fa-house-chimney-window",at:400,df:650,ds:"Colaborar con la comunidad",gf:"#78350f",gt:"#92400e",cl:"#fcd34d",r:3},
+{nm:"Recaudar Fondos",ic:"fa-coins",at:800,df:400,ds:"Organizar donaciones",gf:"#854d0e",gt:"#a16207",cl:"#fde047",r:4},
+{nm:"Proteger el Ambiente",ic:"fa-leaf",at:500,df:700,ds:"Actuar por la naturaleza",gf:"#14532d",gt:"#166534",cl:"#86efac",r:3},
+{nm:"Ser Honesto",ic:"fa-handshake",at:350,df:900,ds:"Decir la verdad siempre",gf:"#374151",gt:"#4b5563",cl:"#d1d5db",r:4},
+{nm:"Pedir Perdón",ic:"fa-heart-crack",at:200,df:600,ds:"Reconocer tus errores",gf:"#881337",gt:"#9f1239",cl:"#fda4af",r:1}
+];
+
+/* ========== ESTADO GLOBAL ========== */
+var G = {
+    mode: 'menu',
+    j1Cards: [],
+    j2Cards: [],
+    p1Pick: null,
+    p2Pick: null,
+    j1Score: 0,
+    j2Score: 0,
+    round: 0,
+    maxRounds: 5,
+    busy: false,
+    history: []
+};
+
+/* ========== ATAJOS DOM ========== */
+function $(id) { return document.getElementById(id); }
+
+/* ========== AUDIO SIMPLE ========== */
+var audioCtx = null;
+function initAudio() { if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
+function playTone(freq, dur, type, vol) {
+    if (!audioCtx) return;
+    try {
+        var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+        osc.type = type || 'sine'; osc.frequency.value = freq;
+        gain.gain.value = vol || 0.06;
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch(e) {}
+}
+function sfx(name) {
+    initAudio();
+    switch(name) {
+        case 'sel': playTone(523,.1); setTimeout(function(){playTone(659,.1)},70); break;
+        case 'flip': playTone(400,.1,'triangle',.05); break;
+        case 'step': playTone(480,.05,'square',.02); break;
+        case 'pen': playTone(600,.07,'sawtooth',.04); setTimeout(function(){playTone(800,.09,'sawtooth',.04)},50); break;
+        case 'blk': playTone(300,.08,'square',.03); setTimeout(function(){playTone(220,.1,'square',.03)},70); break;
+        case 'win': playTone(523,.1); setTimeout(function(){playTone(659,.1)},90); setTimeout(function(){playTone(784,.2)},180); break;
+        case 'lose': playTone(400,.1); setTimeout(function(){playTone(340,.1)},110); setTimeout(function(){playTone(280,.25)},220); break;
+        case 'draw': playTone(440,.12,'triangle',.04); setTimeout(function(){playTone(440,.12,'triangle',.04)},180); break;
+        case 'hit': playTone(200,.15,'sawtooth',.06); playTone(150,.2,'square',.04); break;
+        case 'shld': playTone(500,.08,'triangle',.05); playTone(700,.06,'sine',.04); break;
+    }
+}
+
+/* ========== PARTICULAS DE FONDO ========== */
+var canvas = $('bgC'), ctx = canvas.getContext('2d'), particles = [];
+function resizeCanvas() { canvas.width = innerWidth; canvas.height = innerHeight; }
+addEventListener('resize', resizeCanvas); resizeCanvas();
+
+function Particle(init) {
+    this.reset(init);
+}
+Particle.prototype.reset = function(init) {
+    this.x = Math.random() * canvas.width;
+    this.y = init ? Math.random() * canvas.height : canvas.height + 10;
+    this.size = Math.random() * 1 + 0.3;
+    this.vy = -(Math.random() * 0.18 + 0.05);
+    this.vx = (Math.random() - 0.5) * 0.06;
+    this.opacity = Math.random() * 0.2 + 0.04;
+    this.phase = Math.random() * 6.28;
+};
+Particle.prototype.update = function(t) {
+    this.y += this.vy;
+    this.x += this.vx + Math.sin(t * 0.0007 + this.phase) * 0.08;
+    if (this.y < -10) this.reset(false);
+};
+Particle.prototype.draw = function() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, Math.max(0.1, this.size), 0, 6.28);
+    ctx.fillStyle = 'rgba(201,168,76,' + this.opacity + ')';
+    ctx.fill();
+};
+for (var i = 0; i < 35; i++) particles.push(new Particle(true));
+(function animBg(t) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < particles.length; i++) { particles[i].update(t); particles[i].draw(); }
+    requestAnimationFrame(animBg);
+})(0);
+
+/* ========== UTILIDADES ========== */
+function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+}
+function wait(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+function toast(msg, type, dur) {
+    var el = document.createElement('div');
+    el.className = 'tst ' + (type || 'i');
+    el.textContent = msg;
+    $('toasts').appendChild(el);
+    setTimeout(function() {
+        el.style.transition = 'opacity .3s'; el.style.opacity = '0';
+        setTimeout(function() { el.remove(); }, 300);
+    }, dur || 2000);
+}
+
+/* ========== CONSTRUIR CARTA HTML ========== */
+function starsHTML(rarity) {
+    var h = '<div class="strs">';
+    for (var i = 0; i < rarity; i++) h += '<i class="fas fa-star s' + rarity + '"></i>';
+    return h + '</div>';
+}
+function cardHTML(card, clickable) {
+    var d = document.createElement('div');
+    d.className = 'gc' + (clickable ? ' ck' : '');
+    d.innerHTML = starsHTML(card.r) +
+        '<div class="nm">' + card.nm + '</div>' +
+        '<div class="il" style="background:linear-gradient(135deg,' + card.gf + '55,' + card.gt + '28)">' +
+        '<i class="fas ' + card.ic + '" style="color:' + card.cl + '"></i></div>' +
+        '<div class="ds">' + card.ds + '</div>' +
+        '<div class="sts"><div class="st2"><div class="shx" data-atk>' + card.at + '</div><span class="sl2l a">ATK</span></div>' +
+        '<div class="st2"><div class="scc" data-def>' + card.df + '</div><span class="sl2l d">DEF</span></div></div>';
+    return d;
+}
+function cardBackHTML() {
+    var d = document.createElement('div');
+    d.className = 'cb';
+    d.innerHTML = '<i class="fas fa-star"></i>';
+    return d;
+}
+
+/* ========== RENDERIZADO ========== */
+function renderHand(cards, containerId, clickable, onClickFn) {
+    var container = $(containerId);
+    container.innerHTML = '';
+    for (var i = 0; i < cards.length; i++) {
+        (function(idx) {
+            var el = cardHTML(cards[idx], clickable);
+            if (clickable && onClickFn) {
+                el.addEventListener('click', function() { onClickFn(idx); });
+            }
+            el.style.animation = 'fI .35s ease ' + (idx * 0.05) + 's both';
+            container.appendChild(el);
+        })(i);
+    }
+}
+function renderBacks(count, containerId) {
+    var container = $(containerId);
+    container.innerHTML = '';
+    for (var i = 0; i < count; i++) {
+        var el = cardBackHTML();
+        el.style.animation = 'fI .35s ease ' + (i * 0.05) + 's both';
+        container.appendChild(el);
+    }
+}
+function updateScoreUI() {
+    $('pSc').textContent = G.j1Score;
+    $('aSc').textContent = G.j2Score;
+    $('rI').textContent = 'Ronda ' + Math.min(G.round, G.maxRounds) + '/' + G.maxRounds;
+}
+function popScore(who) {
+    var el = who === 1 ? $('pSc') : $('aSc');
+    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
+function addHistoryDot(result) {
+    var d = document.createElement('div');
+    d.className = 'rhi ' + (result === 'win' ? 'rw' : result === 'lose' ? 'rl' : 'rd');
+    d.innerHTML = result === 'win' ? '<i class="fas fa-check"></i>' : result === 'lose' ? '<i class="fas fa-xmark"></i>' : '<i class="fas fa-equals"></i>';
+    $('rH').appendChild(d);
+    requestAnimationFrame(function() { requestAnimationFrame(function() { d.classList.add('vis'); }); });
+}
+
+/* ========== LOGICA DE BATALLA (DOBLE COMPARACION) ========== */
+function resolveBattle(pCard, aCard) {
+    var pPen = pCard.at > aCard.df;
+    var aPen = aCard.at > pCard.df;
+    var result, reason;
+    if (pPen && !aPen) {
+        result = 'win'; reason = 'Tu ataque supero su defensa y bloqueaste el suyo.';
+    } else if (!pPen && aPen) {
+        result = 'lose'; reason = 'El rival penetro tu defensa y bloqueo tu ataque.';
+    } else if (pPen && aPen) {
+        if (pCard.at > aCard.at) { result = 'win'; reason = 'Ambos penetraron. Tu ATK (' + pCard.at + ') > su ATK (' + aCard.at + ').'; }
+        else if (aCard.at > pCard.at) { result = 'lose'; reason = 'Ambos penetraron. Su ATK (' + aCard.at + ') > tu ATK (' + pCard.at + ').'; }
+        else { result = 'draw'; reason = 'Mismo ATK (' + pCard.at + '). Empate.'; }
+    } else {
+        if (pCard.df > aCard.df) { result = 'win'; reason = 'Ninguno penetro. Tu DEF (' + pCard.df + ') > su DEF (' + aCard.df + ').'; }
+        else if (aCard.df > pCard.df) { result = 'lose'; reason = 'Ninguno penetro. Su DEF (' + aCard.df + ') > tu DEF (' + pCard.df + ').'; }
+        else { result = 'draw'; reason = 'Misma DEF (' + pCard.df + '). Empate total.'; }
+    }
+    return { result: result, reason: reason, pPen: pPen, aPen: aPen };
+}
+
+/* ========== ANIMACIONES DE ATAQUE/DEFENSA ========== */
+function animAttackHit(fromSlot, toSlot) {
+    return new Promise(function(resolve) {
+        var fRect = fromSlot.getBoundingClientRect();
+        var tRect = toSlot.getBoundingClientRect();
+        var bRect = $('bZ').getBoundingClientRect();
+        var sx = fRect.left + fRect.width/2 - bRect.left;
+        var sy = fRect.top + fRect.height/2 - bRect.top;
+        var ex = tRect.left + tRect.width/2 - bRect.left;
+        var ey = tRect.top + tRect.height/2 - bRect.top;
+        var proj = document.createElement('div');
+        proj.className = 'atk-pj';
+        proj.style.left = sx + 'px'; proj.style.top = sy + 'px';
+        $('bZ').appendChild(proj);
+        sfx('hit');
+        requestAnimationFrame(function() {
+            proj.style.transition = 'all .35s cubic-bezier(.4,0,.2,1)';
+            proj.style.left = ex + 'px'; proj.style.top = ey + 'px';
+        });
+        setTimeout(function() {
+            proj.classList.add('hit');
+            toSlot.classList.add('shake');
+            setTimeout(function() { proj.remove(); toSlot.classList.remove('shake'); resolve(); }, 500);
+        }, 350);
+    });
+}
+function animDefendBlock(slot) {
+    return new Promise(function(resolve) {
+        var sRect = slot.getBoundingClientRect();
+        var bRect = $('bZ').getBoundingClientRect();
+        var sh = document.createElement('div');
+        sh.className = 'def-sh';
+        sh.style.left = (sRect.left + sRect.width/2 - bRect.left - 20) + 'px';
+        sh.style.top = (sRect.top + sRect.height/2 - bRect.top - 20) + 'px';
+        $('bZ').appendChild(sh);
+        sfx('shld');
+        requestAnimationFrame(function() { sh.classList.add('blk'); });
+        setTimeout(function() { sh.remove(); resolve(); }, 600);
+    });
+}
+
+/* ========== LIMPIAR ZONA DE BATALLA ========== */
+function clearBattle() {
+    $('bE').style.display = 'flex';
+    $('pSl').style.display = 'none';
+    $('aSl').style.display = 'none';
+    $('cP').classList.remove('on');
+    $('bF').classList.remove('on');
+    $('pSl').innerHTML = '';
+    $('aSl').innerHTML = '';
+    $('cP').innerHTML = '';
+}
+
+/* ========== CONFIGURAR VISTA PARA UN JUGADOR ========== */
+function setupPlayerView(playerNum) {
+    var isP1 = (playerNum === 1);
+    var myCards = isP1 ? G.j1Cards : G.j2Cards;
+    var oppCount = isP1 ? G.j2Cards.length : G.j1Cards.length;
+    $('pLbl').textContent = 'J' + playerNum;
+    $('aLbl').textContent = 'J' + (isP1 ? 2 : 1);
+    $('aIco').className = 'fas fa-user';
+    $('aIco').style.color = 'var(--df)';
+    $('pLab').textContent = 'Cartas de J' + playerNum;
+    $('aLab').textContent = 'Cartas de J' + (isP1 ? 2 : 1);
+    renderHand(myCards, 'pA', true, function(idx) { onCardSelected(idx, playerNum); });
+    renderBacks(oppCount, 'aiA');
+    updateScoreUI();
+}
+
+/* ========== INICIAR MODO LOCAL ========== */
+function startLocal() {
+    initAudio();
+    G.mode = 'local';
+    G.p1Pick = null;
+    G.p2Pick = null;
+    G.j1Score = 0;
+    G.j2Score = 0;
+    G.round = 0;
+    G.busy = false;
+    G.history = [];
+    var shuffled = shuffle(CD);
+    G.j1Cards = shuffled.slice(0, 5);
+    G.j2Cards = shuffled.slice(5, 10);
+    showScreen('game');
+    $('rH').innerHTML = '';
+    clearBattle();
+    setupPlayerView(1);
+    toast('J1: elige tu carta', 'w');
+}
+
+/* ========== INICIAR MODO IA ========== */
+function startAI() {
+    initAudio();
+    G.mode = 'ai';
+    G.p1Pick = null;
+    G.j1Score = 0;
+    G.j2Score = 0;
+    G.round = 0;
+    G.busy = false;
+    G.history = [];
+    var shuffled = shuffle(CD);
+    G.j1Cards = shuffled.slice(0, 5);
+    G.j2Cards = shuffled.slice(5, 10);
+    showScreen('game');
+    $('rH').innerHTML = '';
+    $('pLbl').textContent = 'Tu';
+    $('aLbl').textContent = 'Rival';
+    $('aIco').className = 'fas fa-robot';
+    $('aIco').style.color = 'var(--df)';
+    $('pLab').textContent = 'Tus Cartas';
+    $('aLab').textContent = 'Cartas del Rival';
+    renderHand(G.j1Cards, 'pA', true, function(idx) { onCardSelected(idx, 1); });
+    renderBacks(G.j2Cards.length, 'aiA');
+    updateScoreUI();
+    toast('Elige tu carta', 'w');
+}
+
+/* ========== MOSTRAR PANTALLA ========== */
+function showScreen(name) {
+    $('menuScr').style.display = 'none';
+    $('gameScr').classList.remove('on');
+    $('endScr').classList.remove('on');
+    $('endScr').style.display = 'none';
+    $('blockScr').classList.remove('on');
+    if (name === 'menu') $('menuScr').style.display = 'flex';
+    else if (name === 'game') $('gameScr').classList.add('on');
+    else if (name === 'end') { $('endScr').style.display = 'flex'; $('endScr').classList.add('on'); }
+}
+
+/* ========== BLOQUEO ENTRE TURNOS ========== */
+function showBlock(nextPlayer) {
+    $('blkTitle').textContent = 'Pasa el dispositivo a J' + nextPlayer;
+    $('blkText').textContent = 'Jugador ' + nextPlayer + ', toca el boton cuando estes listo.';
+    $('blockScr').classList.add('on');
+}
+function unblock() {
+    $('blockScr').classList.remove('on');
+    if (G.mode === 'local') {
+        setupPlayerView(2);
+        toast('J2: elige tu carta', 'w');
+    }
+}
+
+/* ========== SELECCIONAR CARTA ========== */
+function onCardSelected(idx, playerNum) {
+    if (G.busy) return;
+    var myCards = (playerNum === 1) ? G.j1Cards : G.j2Cards;
+    if (idx < 0 || idx >= myCards.length) return;
+
+    G.busy = true;
+    var chosen = myCards.splice(idx, 1)[0];
+    sfx('sel');
+
+    /* Feedback visual: la seleccionada se eleva, las demas se atenúan */
+    var cards = $('pA').querySelectorAll('.gc');
+    for (var i = 0; i < cards.length; i++) {
+        if (i === idx) cards[i].classList.add('sl2');
+        else { cards[i].style.opacity = '.3'; cards[i].style.pointerEvents = 'none'; }
+    }
+
+    if (G.mode === 'local' && playerNum === 1) {
+        /* J1 eligio: guardar y pasar a J2 */
+        G.p1Pick = chosen;
+        setTimeout(function() { showBlock(2); G.busy = false; }, 500);
+        return;
+    }
+
+    /* Determinar carta rival */
+    var rivalCard;
+    if (G.mode === 'ai') {
+        var aiIdx = G.j2Cards.length <= 1 ? 0 :
+            (Math.random() < 0.55 ? (function() {
+                var best = 0, bestVal = -1;
+                for (var j = 0; j < G.j2Cards.length; j++) {
+                    var val = G.j2Cards[j].at + G.j2Cards[j].df;
+                    if (val > bestVal) { bestVal = val; best = j; }
+                }
+                return best;
+            })() : Math.floor(Math.random() * G.j2Cards.length));
+        rivalCard = G.j2Cards.splice(aiIdx, 1)[0];
+    } else {
+        rivalCard = G.p1Pick;
+        G.p1Pick = null;
+    }
+
+    /* Ejecutar batalla */
+    setTimeout(function() { executeBattle(chosen, rivalCard, playerNum); }, 500);
+}
+
+/* ========== SECUENCIA DE BATALLA ========== */
+async function executeBattle(myCard, rivalCard, myPlayerNum) {
+    G.round++;
+    updateScoreUI();
+
+    /* Mostrar zona de batalla */
+    $('bE').style.display = 'none';
+    $('pSl').style.display = 'block';
+    $('aSl').style.display = 'block';
+    var cp = $('cP');
+    cp.classList.add('on');
+    cp.innerHTML =
+        '<div class="cpt"><i class="fas fa-bolt" style="margin-right:2px"></i> Comparacion</div>' +
+        '<div class="cr2" id="r1"><span class="cl" style="color:var(--at)">Tu ATK</span><span class="cv" style="color:var(--at)">' + myCard.at + '</span><span class="cvs">vs</span><span class="cv" style="color:var(--df)">' + rivalCard.df + '</span><span class="cl" style="color:var(--df)">Su DEF</span></div>' +
+        '<div class="cr2" id="r2"><span style="width:36px"></span><span></span><span></span><span class="cres" id="e1"></span><span></span></div>' +
+        '<div class="cdv" id="d1"></div>' +
+        '<div class="cr2" id="r3"><span class="cl" style="color:var(--at)">Su ATK</span><span class="cv" style="color:var(--at)">' + rivalCard.at + '</span><span class="cvs">vs</span><span class="cv" style="color:var(--df)">' + myCard.df + '</span><span class="cl" style="color:var(--df)">Tu DEF</span></div>' +
+        '<div class="cr2" id="r4"><span style="width:36px"></span><span></span><span></span><span class="cres" id="e2"></span><span></span></div>' +
+        '<div class="cdv" id="d2"></div>' +
+        '<div class="cfin" id="fR"></div><div class="crea" id="fA"></div>';
+    $('bF').classList.remove('on');
+
+    /* Fase 1: Aparece tu carta */
+    $('pSl').innerHTML = '';
+    var pEl = cardHTML(myCard); pEl.classList.add('bu');
+    $('pSl').appendChild(pEl);
+    sfx('sel');
+    await wait(800);
+
+    /* Fase 2: Voltea carta rival */
+    $('aSl').innerHTML = '';
+    var aEl = cardHTML(rivalCard); aEl.classList.add('bf');
+    $('aSl').appendChild(aEl);
+    sfx('flip');
+    await wait(900);
+
+    /* Fase 3: Primera comparacion - Tu ATK vs Su DEF */
+    sfx('step'); $('r1').classList.add('vis');
+    await wait(400);
+    sfx('step'); $('r2').classList.add('vis');
+    await wait(300);
+    var pAtkEl = pEl.querySelector('[data-atk]');
+    var aDefEl = aEl.querySelector('[data-def]');
+    if (pAtkEl) pAtkEl.classList.add('hi');
+    if (aDefEl) aDefEl.classList.add('hi');
+    await wait(300);
+
+    var res = resolveBattle(myCard, rivalCard);
+    if (res.pPen) { await animAttackHit($('pSl'), $('aSl')); sfx('pen'); }
+    else { await animDefendBlock($('aSl')); sfx('blk'); }
+    $('e1').className = 'cres ' + (res.pPen ? 'ok' : 'no');
+    $('e1').innerHTML = res.pPen ? '<i class="fas fa-check" style="margin-right:2px"></i>Penetra' : '<i class="fas fa-xmark" style="margin-right:2px"></i>Bloqueado';
+    await wait(900);
+
+    /* Fase 4: Segunda comparacion - Su ATK vs Tu DEF */
+    $('d1').classList.add('vis');
+    await wait(300);
+    sfx('step'); $('r3').classList.add('vis');
+    await wait(400);
+    sfx('step'); $('r4').classList.add('vis');
+    await wait(300);
+    var aAtkEl = aEl.querySelector('[data-atk]');
+    var pDefEl = pEl.querySelector('[data-def]');
+    if (aAtkEl) aAtkEl.classList.add('hi');
+    if (pDefEl) pDefEl.classList.add('hi');
+    await wait(300);
+
+    if (res.aPen) { await animAttackHit($('aSl'), $('pSl')); sfx('pen'); }
+    else { await animDefendBlock($('pSl')); sfx('blk'); }
+    $('e2').className = 'cres ' + (res.aPen ? 'ok' : 'no');
+    $('e2').innerHTML = res.aPen ? '<i class="fas fa-check" style="margin-right:2px"></i>Penetra' : '<i class="fas fa-xmark" style="margin-right:2px"></i>Bloqueado';
+    await wait(900);
+
+    /* Fase 5: Resultado final */
+    $('d2').classList.add('vis');
+    await wait(200);
+    $('fR').className = 'cfin ' + res.result;
+    $('fR').textContent = res.result === 'win' ? 'Victoria' : res.result === 'lose' ? 'Derrota' : 'Empate';
+    $('fA').textContent = res.reason;
+    await wait(150);
+    $('fR').classList.add('vis');
+    await wait(100);
+    $('fA').classList.add('vis');
+
+    /* Flash y efectos */
+    $('bF').classList.add('on');
+    sfx(res.result);
+    if (res.result === 'win') { pEl.classList.add('wg'); aEl.classList.add('ld'); }
+    else if (res.result === 'lose') { aEl.classList.add('wg'); pEl.classList.add('ld'); }
+    else { pEl.style.opacity = '.5'; aEl.style.opacity = '.5'; }
+
+    await wait(1000);
+
+    /* Actualizar puntuacion */
+    if (res.result === 'win') { G.j1Score++; popScore(1); }
+    else if (res.result === 'lose') { G.j2Score++; popScore(2); }
+    addHistoryDot(res.result);
+    G.history.push({ p: myCard, a: rivalCard, r: res.result });
+    updateScoreUI();
+
+    await wait(500);
+    clearBattle();
+    G.busy = false;
+
+    /* Verificar fin del juego */
+    if (G.j1Cards.length === 0 || G.j2Cards.length === 0) {
+        setTimeout(endGame, 300);
+        return;
+    }
+    if (res.result === 'draw') toast('Empate. Siguiente ronda.', 'i');
+
+    /* Preparar siguiente turno */
+    if (G.mode === 'local') {
+        showBlock(1);
+    } else {
+        renderHand(G.j1Cards, 'pA', true, function(idx) { onCardSelected(idx, 1); });
+        renderBacks(G.j2Cards.length, 'aiA');
+        toast('Elige tu carta', 'w');
+    }
+}
+
+/* ========== FIN DEL JUEGO ========== */
+function endGame() {
+    G.mode = 'end';
+    $('gameScr').classList.remove('on');
+    $('blockScr').classList.remove('on');
+    var p = G.j1Score, a = G.j2Score;
+    var isLocal = G.history.length > 0;
+    var pName = isLocal && G.j1Cards !== undefined ? 'J1' : 'Tu';
+    var aName = isLocal && G.j1Cards !== undefined ? 'J2' : 'Rival';
+    var icon, title, sub, color;
+    if (p > a) { icon = '<i class="fas fa-crown" style="color:#f0d060"></i>'; title = 'Victoria Gloriosa'; sub = pName + ' ha ganado.'; color = 'var(--gl)'; }
+    else if (a > p) { icon = '<i class="fas fa-shield-halved" style="color:#ff1744"></i>'; title = 'Derrota Honorable'; sub = aName + ' ha ganado.'; color = 'var(--df)'; }
+    else { icon = '<i class="fas fa-handshake" style="color:#60a5fa"></i>'; title = 'Empate Perfecto'; sub = 'Igualdad de poder.'; color = '#60a5fa'; }
+    $('eI').innerHTML = icon;
+    $('eT').textContent = title; $('eT').style.color = color;
+    $('eS').textContent = sub;
+    $('eSc').innerHTML = '<span style="color:var(--gl)">' + p + ' <small style="color:#7a7090;font-size:.6em">' + pName + '</small></span><span style="color:#3a3450">—</span><span style="color:var(--df)">' + a + ' <small style="color:#7a7090;font-size:.6em">' + aName + '</small></span>';
+    var hh = '';
+    for (var i = 0; i < G.history.length; i++) {
+        var h = G.history[i];
+        var rc = h.r === 'win' ? 'var(--at)' : h.r === 'lose' ? 'var(--df)' : '#60a5fa';
+        hh += '<div style="font-size:.6rem;color:#6a6280;margin:1px 0">R' + (i+1) + ': <span style="color:var(--gl)">' + h.p.nm + '</span> (' + h.p.at + '/' + h.p.df + ') vs <span style="color:var(--gl)">' + h.a.nm + '</span> (' + h.a.at + '/' + h.a.df + ') = <span style="color:' + rc + '">' + h.r + '</span></div>';
+    }
+    $('eH').innerHTML = hh;
+    showScreen('end');
+}
+
+/* ========== VOLVER AL MENU ========== */
+function goMenu() {
+    showScreen('menu');
+    G.mode = 'menu';
+}
+</script>
+</body>
+</html>
