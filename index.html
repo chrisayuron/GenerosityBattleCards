@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cartas de Virtud</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Quicksand:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -130,6 +132,7 @@ body{font-family:'Quicksand',sans-serif;background:#080610;color:#e8e0d0;overflo
 <p class="tsub">Batalla de habilidades sociales entre dos jugadores.</p>
 <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem">
 <div class="mbtn" onclick="startLocal()"><i class="fas fa-people-arrows"></i><span>Jugador vs Jugador</span></div>
+<div class="mbtn" onclick="showOnlineMenu()"><i class="fas fa-wifi"></i><span>En Línea</span></div>
 <div class="mbtn" onclick="startAI()"><i class="fas fa-robot"></i><span>Jugador vs Maquina</span></div>
 </div>
 <div style="margin-top:1rem;max-width:380px;text-align:left">
@@ -140,6 +143,78 @@ Solo tu penetras = <strong style="color:var(--at)">Ganas</strong> | Solo rival =
 Ambos penetran = mayor ATK gana | Ninguno = mayor DEF gana | Todo igual = empate
 </div>
 </div>
+</div>
+
+<!-- PANTALLA EN LÍNEA -->
+<div id="onlineScr" class="scr" style="display:none;min-height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:.8rem;padding:1.5rem;text-align:center">
+
+  <!-- Paso 1: Ingresar nombre -->
+  <div id="olStep1">
+    <h2 class="tmain" style="font-size:clamp(1.2rem,3vw,1.8rem);margin-bottom:.4rem">Batalla en Línea</h2>
+    <p class="tsub" style="margin-bottom:1rem">¿Cómo te llamas?</p>
+    <input id="olName" type="text" maxlength="18" placeholder="Tu nombre..." autocomplete="off"
+      style="background:rgba(18,16,28,.8);border:1.5px solid var(--gd);color:#e8e0d0;border-radius:8px;padding:.5rem .9rem;font-size:.9rem;font-family:'Quicksand',sans-serif;text-align:center;width:220px;outline:none"
+      onkeydown="if(event.key==='Enter') olConfirmName()">
+    <br><br>
+    <button class="btn-p" onclick="olConfirmName()"><i class="fas fa-arrow-right" style="margin-right:4px"></i>Continuar</button>
+    <br><br>
+    <button class="btn-s" onclick="goMenu()">← Volver</button>
+  </div>
+
+  <!-- Paso 2: Lobby (crear / unirse / lista) -->
+  <div id="olStep2" style="display:none;width:100%;max-width:400px">
+    <p style="font-size:.75rem;color:#9a8e7a;margin-bottom:.3rem">Jugando como <span id="olNameDisplay" style="color:var(--gl);font-weight:700"></span></p>
+    <h2 class="tmain" style="font-size:clamp(1rem,2.5vw,1.5rem);margin-bottom:.8rem">Sala de Batallas</h2>
+
+    <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1rem">
+      <button class="btn-p" onclick="olCreateRoom()"><i class="fas fa-plus" style="margin-right:4px"></i>Crear Sala</button>
+      <button class="btn-s" onclick="olShowJoinCode()"><i class="fas fa-key" style="margin-right:4px"></i>Unirse con Código</button>
+    </div>
+
+    <!-- Unirse con código -->
+    <div id="olJoinCodeBox" style="display:none;margin-bottom:.8rem">
+      <input id="olCodeInput" type="text" maxlength="6" placeholder="Código (ej: AB12CD)" autocomplete="off"
+        style="background:rgba(18,16,28,.8);border:1.5px solid var(--gd);color:#e8e0d0;border-radius:8px;padding:.4rem .8rem;font-size:1rem;font-family:'Cinzel',serif;text-align:center;width:160px;outline:none;letter-spacing:.12em;text-transform:uppercase"
+        onkeydown="if(event.key==='Enter') olJoinByCode()">
+      <br><br>
+      <button class="btn-p" onclick="olJoinByCode()">Unirse</button>
+      <button class="btn-s" onclick="$('olJoinCodeBox').style.display='none'" style="margin-left:.4rem">Cancelar</button>
+    </div>
+
+    <!-- Lista de salas abiertas -->
+    <div style="text-align:left">
+      <p style="font-size:.65rem;color:#5a5070;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem"><i class="fas fa-door-open" style="margin-right:4px;color:var(--g)"></i>Salas Abiertas</p>
+      <div id="olRoomList" style="display:flex;flex-direction:column;gap:.3rem;max-height:220px;overflow-y:auto">
+        <p id="olNoRooms" style="font-size:.7rem;color:#4a4060;text-align:center;padding:.5rem">Buscando salas...</p>
+      </div>
+    </div>
+    <br>
+    <button class="btn-s" onclick="goMenu()">← Volver</button>
+  </div>
+
+  <!-- Paso 3: Esperando rival -->
+  <div id="olStep3" style="display:none">
+    <div style="font-size:2rem;animation:ep 2s ease-in-out infinite"><i class="fas fa-hourglass-half" style="color:var(--g)"></i></div>
+    <h2 style="font-family:'Cinzel',serif;font-weight:700;font-size:1.1rem;color:var(--gl);margin:.6rem 0 .3rem">Esperando rival...</h2>
+    <p style="font-size:.75rem;color:#7a7090;margin-bottom:.6rem">Comparte este código con tu compañero:</p>
+    <div id="olRoomCode" style="font-family:'Cinzel',serif;font-weight:900;font-size:2rem;color:var(--gl);letter-spacing:.2em;background:rgba(201,168,76,.08);border:1.5px solid var(--gd);border-radius:10px;padding:.4rem 1.2rem;display:inline-block"></div>
+    <br><br>
+    <button class="btn-s" onclick="olCancelRoom()">Cancelar</button>
+  </div>
+
+  <!-- Paso 4: Conectando / Sincronizando -->
+  <div id="olStep4" style="display:none">
+    <div style="font-size:2rem;animation:ep 1.5s ease-in-out infinite"><i class="fas fa-bolt" style="color:var(--gl)"></i></div>
+    <h2 style="font-family:'Cinzel',serif;font-weight:700;font-size:1.1rem;color:var(--gl);margin:.6rem 0 .3rem">¡Rival encontrado!</h2>
+    <p id="olRivalName" style="font-size:.8rem;color:#9a8e7a">Preparando batalla...</p>
+  </div>
+</div>
+
+<!-- PANTALLA DE ESPERA ONLINE (carta seleccionada, aguardando rival) -->
+<div id="olWaitScr" style="position:fixed;inset:0;z-index:55;background:rgba(6,4,12,.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:.8rem;text-align:center;padding:2rem">
+  <div style="font-size:2rem;animation:ep 2s ease-in-out infinite"><i class="fas fa-hourglass-half" style="color:var(--g)"></i></div>
+  <h2 style="font-family:'Cinzel',serif;color:var(--gl);font-size:1rem">Carta enviada</h2>
+  <p style="color:#7a7090;font-size:.8rem">Esperando que <span id="olWaitName" style="color:var(--g)">tu rival</span> elija su carta...</p>
 </div>
 
 <!-- PANTALLA DE BLOQUEO entre turnos -->
@@ -523,9 +598,11 @@ function showScreen(name) {
     $('endScr').classList.remove('on');
     $('endScr').style.display = 'none';
     $('blockScr').classList.remove('on');
+    $('onlineScr').style.display = 'none';
     if (name === 'menu') $('menuScr').style.display = 'flex';
     else if (name === 'game') $('gameScr').classList.add('on');
     else if (name === 'end') { $('endScr').style.display = 'flex'; $('endScr').classList.add('on'); }
+    else if (name === 'online') $('onlineScr').style.display = 'flex';
 }
 
 /* ========== BLOQUEO ENTRE TURNOS ========== */
@@ -563,6 +640,13 @@ function onCardSelected(idx, playerNum) {
         /* J1 eligio: guardar y pasar a J2 */
         G.p1Pick = chosen;
         setTimeout(function() { showBlock(2); G.busy = false; }, 500);
+        return;
+    }
+
+    /* Modo online: enviar carta a Firebase y esperar rival */
+    if (G.mode === 'online') {
+        G.busy = false;
+        setTimeout(function() { olSendCard(chosen); }, 300);
         return;
     }
 
@@ -702,6 +786,11 @@ async function executeBattle(myCard, rivalCard, myPlayerNum) {
     /* Preparar siguiente turno */
     if (G.mode === 'local') {
         showBlock(1);
+    } else if (G.mode === 'online') {
+        renderHand(G.j1Cards, 'pA', true, function(idx) { onCardSelected(idx, 1); });
+        renderBacks(G.j2Cards.length, 'aiA');
+        G.busy = false;
+        toast('Elige tu carta', 'w');
     } else {
         renderHand(G.j1Cards, 'pA', true, function(idx) { onCardSelected(idx, 1); });
         renderBacks(G.j2Cards.length, 'aiA');
@@ -711,13 +800,13 @@ async function executeBattle(myCard, rivalCard, myPlayerNum) {
 
 /* ========== FIN DEL JUEGO ========== */
 function endGame() {
+    if (G.mode === 'online') olCleanup();
     G.mode = 'end';
     $('gameScr').classList.remove('on');
     $('blockScr').classList.remove('on');
     var p = G.j1Score, a = G.j2Score;
-    var isLocal = G.history.length > 0;
-    var pName = isLocal && G.j1Cards !== undefined ? 'J1' : 'Tu';
-    var aName = isLocal && G.j1Cards !== undefined ? 'J2' : 'Rival';
+    var pName = (G.mode === 'online') ? OL.myName : 'J1';
+    var aName = (G.mode === 'online') ? OL.rivalName : 'J2';
     var icon, title, sub, color;
     if (p > a) { icon = '<i class="fas fa-crown" style="color:#f0d060"></i>'; title = 'Victoria Gloriosa'; sub = pName + ' ha ganado.'; color = 'var(--gl)'; }
     else if (a > p) { icon = '<i class="fas fa-shield-halved" style="color:#ff1744"></i>'; title = 'Derrota Honorable'; sub = aName + ' ha ganado.'; color = 'var(--df)'; }
@@ -738,9 +827,352 @@ function endGame() {
 
 /* ========== VOLVER AL MENU ========== */
 function goMenu() {
+    if (G.mode === 'online') olCleanup();
     showScreen('menu');
     G.mode = 'menu';
 }
+
+/* ========== FIREBASE CONFIG (reemplaza con tus credenciales) ========== */
+var FB_CONFIG = {
+    apiKey: "AIzaSyBZ301WaoyJUFegngFOnpUNa3J5qsvXE1A",
+    authDomain: "batalla-generosidad.firebaseapp.com",
+    databaseURL: "https://batalla-generosidad-default-rtdb.firebaseio.com",
+    projectId: "batalla-generosidad",
+    storageBucket: "batalla-generosidad.firebasestorage.app",
+    messagingSenderId: "26974736436",
+    appId: "1:26974736436:web:33f02463a623e942c63a61"
+};
+
+/* ========== ESTADO ONLINE ========== */
+var OL = {
+    db: null,
+    roomRef: null,
+    roomId: null,
+    playerSlot: null,   // 'p1' o 'p2'
+    myName: '',
+    rivalName: '',
+    listenersAttached: false
+};
+
+/* ========== INICIALIZAR FIREBASE ========== */
+function initFirebase() {
+    if (OL.db) return true;
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+        OL.db = firebase.database();
+        return true;
+    } catch(e) {
+        toast('Error al conectar con Firebase', 'w', 4000);
+        return false;
+    }
+}
+
+/* ========== GENERAR CÓDIGO DE SALA ========== */
+function genRoomCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var code = '';
+    for (var i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+}
+
+/* ========== MOSTRAR MENÚ ONLINE ========== */
+function showOnlineMenu() {
+    showScreen('online');
+    $('olStep1').style.display = 'block';
+    $('olStep2').style.display = 'none';
+    $('olStep3').style.display = 'none';
+    $('olStep4').style.display = 'none';
+    $('olName').value = OL.myName || '';
+    setTimeout(function(){ $('olName').focus(); }, 200);
+}
+
+/* ========== CONFIRMAR NOMBRE ========== */
+function olConfirmName() {
+    var name = $('olName').value.trim();
+    if (!name) { toast('Ingresa tu nombre', 'w'); return; }
+    if (!initFirebase()) return;
+    OL.myName = name;
+    $('olNameDisplay').textContent = name;
+    $('olStep1').style.display = 'none';
+    $('olStep2').style.display = 'block';
+    olListenRooms();
+}
+
+/* ========== ESCUCHAR SALAS ABIERTAS ========== */
+function olListenRooms() {
+    if (!OL.db) return;
+    OL.db.ref('rooms').orderByChild('status').equalTo('waiting').on('value', function(snap) {
+        var list = $('olRoomList');
+        list.innerHTML = '';
+        var found = false;
+        snap.forEach(function(child) {
+            var room = child.val();
+            // No mostrar la propia sala si ya estamos esperando
+            if (child.key === OL.roomId) return;
+            found = true;
+            var div = document.createElement('div');
+            div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(18,16,28,.7);border:1px solid rgba(201,168,76,.12);border-radius:8px;padding:.35rem .6rem;cursor:pointer;transition:all .2s';
+            div.innerHTML =
+                '<span style="font-size:.72rem;color:#e8e0d0"><i class="fas fa-user" style="color:var(--g);margin-right:5px;font-size:.6rem"></i>' + escHtml(room.p1Name) + '</span>' +
+                '<span style="font-family:Cinzel,serif;font-size:.65rem;color:var(--gd);letter-spacing:.1em">' + child.key + '</span>' +
+                '<button class="btn-s" style="font-size:.6rem;padding:.2rem .55rem" onclick="olJoinRoom(\'' + child.key + '\')">Unirse</button>';
+            div.addEventListener('mouseenter', function(){ this.style.borderColor='rgba(201,168,76,.35)'; });
+            div.addEventListener('mouseleave', function(){ this.style.borderColor='rgba(201,168,76,.12)'; });
+            list.appendChild(div);
+        });
+        if (!found) {
+            list.innerHTML = '<p id="olNoRooms" style="font-size:.7rem;color:#4a4060;text-align:center;padding:.5rem">No hay salas abiertas. ¡Crea una!</p>';
+        }
+    });
+}
+
+/* ========== CREAR SALA ========== */
+function olCreateRoom() {
+    if (!OL.db) return;
+    var code = genRoomCode();
+    OL.roomId = code;
+    OL.playerSlot = 'p1';
+    var shuffled = shuffle(CD);
+    var p1Cards = shuffled.slice(0, 5);
+    var p2Cards = shuffled.slice(5, 10);
+    var roomData = {
+        status: 'waiting',
+        p1Name: OL.myName,
+        p2Name: '',
+        p1Cards: p1Cards,
+        p2Cards: p2Cards,
+        p1Pick: null,
+        p2Pick: null,
+        round: 0,
+        p1Score: 0,
+        p2Score: 0,
+        created: firebase.database.ServerValue.TIMESTAMP
+    };
+    OL.roomRef = OL.db.ref('rooms/' + code);
+    OL.roomRef.set(roomData, function(err) {
+        if (err) { toast('Error al crear sala', 'w'); return; }
+        $('olStep2').style.display = 'none';
+        $('olStep3').style.display = 'block';
+        $('olRoomCode').textContent = code;
+        olWatchForRival();
+        // Auto-limpiar sala si se abandona (onDisconnect)
+        OL.roomRef.onDisconnect().remove();
+    });
+}
+
+/* ========== ESPERAR RIVAL EN SALA PROPIA ========== */
+function olWatchForRival() {
+    OL.roomRef.on('value', function(snap) {
+        var room = snap.val();
+        if (!room) return;
+        /* Solo reaccionar cuando p2 ya ingresó Y el estado es 'playing'
+           (la transacción de olJoinRoom ya puso ambos campos) */
+        if (room.p2Name && room.p2Name !== '' && room.status === 'playing') {
+            OL.roomRef.off();   // dejar de escuchar cambios del lobby
+            OL.rivalName = room.p2Name;
+            $('olStep3').style.display = 'none';
+            $('olStep4').style.display = 'block';
+            $('olRivalName').textContent = 'vs ' + room.p2Name;
+            setTimeout(olStartOnlineGame, 1200);
+        }
+    });
+}
+
+/* ========== MOSTRAR CAMPO DE CÓDIGO ========== */
+function olShowJoinCode() {
+    var box = $('olJoinCodeBox');
+    box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    if (box.style.display === 'block') setTimeout(function(){ $('olCodeInput').focus(); }, 100);
+}
+
+/* ========== UNIRSE POR CÓDIGO MANUAL ========== */
+function olJoinByCode() {
+    var code = $('olCodeInput').value.trim().toUpperCase();
+    if (code.length !== 6) { toast('Código de 6 caracteres', 'w'); return; }
+    olJoinRoom(code);
+}
+
+/* ========== UNIRSE A UNA SALA (transacción atómica — solo 1 jugador puede ocupar p2) ========== */
+function olJoinRoom(code) {
+    if (!OL.db) return;
+    var ref = OL.db.ref('rooms/' + code);
+
+    ref.transaction(function(room) {
+        /* Si la sala no existe o ya no está en 'waiting', abortar sin modificar */
+        if (!room) return;                          // sala no existe → abortar
+        if (room.status !== 'waiting') return;      // ya llena / en juego → abortar
+        if (room.p2Name && room.p2Name !== '') return; // ya tiene p2 → abortar (doble seguro)
+
+        /* Ocupar el slot atómicamente */
+        room.p2Name = OL.myName;
+        room.status = 'playing';
+        return room;
+
+    }, function(err, committed, snap) {
+        if (err) {
+            toast('Error de conexión al unirse', 'w'); return;
+        }
+        if (!committed) {
+            /* La transacción fue abortada: sala llena, terminada o inexistente */
+            ref.once('value', function(s) {
+                var r = s.val();
+                if (!r)                         toast('Sala no encontrada: ' + code, 'w');
+                else if (r.status !== 'waiting') toast('Esa sala ya está en juego 🔒', 'w');
+                else                             toast('No se pudo unir, intenta de nuevo', 'w');
+            });
+            return;
+        }
+
+        /* Ingreso confirmado */
+        var room = snap.val();
+        OL.roomId   = code;
+        OL.playerSlot = 'p2';
+        OL.roomRef  = ref;
+        OL.rivalName = room.p1Name;
+
+        $('olStep2').style.display = 'none';
+        $('olStep4').style.display = 'block';
+        $('olRivalName').textContent = 'vs ' + room.p1Name;
+
+        ref.onDisconnect().update({ status: 'abandoned' });
+        setTimeout(olStartOnlineGame, 1200);
+    });
+}
+
+/* ========== CANCELAR SALA ========== */
+function olCancelRoom() {
+    if (OL.roomRef) { OL.roomRef.remove(); OL.roomRef = null; }
+    OL.roomId = null;
+    OL.playerSlot = null;
+    showOnlineMenu();
+    $('olStep2').style.display = 'block';
+    $('olStep3').style.display = 'none';
+}
+
+/* ========== INICIAR PARTIDA ONLINE ========== */
+function olStartOnlineGame() {
+    OL.listenersAttached = false;
+    OL.roomRef.once('value', function(snap) {
+        var room = snap.val();
+        if (!room) { toast('Error: sala perdida', 'w'); goMenu(); return; }
+
+        var mySlot = OL.playerSlot;
+        var myCards = (mySlot === 'p1') ? room.p1Cards : room.p2Cards;
+        var rivalCards = (mySlot === 'p1') ? room.p2Cards : room.p1Cards;
+
+        G.mode = 'online';
+        G.j1Cards = myCards.slice();
+        G.j2Cards = rivalCards.slice();
+        G.j1Score = (mySlot === 'p1') ? room.p1Score : room.p2Score;
+        G.j2Score = (mySlot === 'p1') ? room.p2Score : room.p1Score;
+        G.round = room.round || 0;
+        G.maxRounds = 5;
+        G.busy = false;
+        G.history = [];
+        G.p1Pick = null;
+
+        showScreen('game');
+        $('rH').innerHTML = '';
+        clearBattle();
+        $('pLbl').textContent = OL.myName;
+        $('aLbl').textContent = OL.rivalName;
+        $('aIco').className = 'fas fa-user';
+        $('aIco').style.color = 'var(--df)';
+        $('pLab').textContent = 'Tus Cartas';
+        $('aLab').textContent = 'Cartas de ' + OL.rivalName;
+        renderHand(G.j1Cards, 'pA', true, function(idx) { onCardSelected(idx, 1); });
+        renderBacks(G.j2Cards.length, 'aiA');
+        updateScoreUI();
+        toast('¡Batalla con ' + OL.rivalName + '!', 'w', 3000);
+
+        olListenForRivalPick();
+        olListenForDisconnect();
+    });
+}
+
+/* ========== ESCUCHAR CARTA DEL RIVAL ========== */
+function olListenForRivalPick() {
+    if (!OL.roomRef) return;
+    var rivalPickField = (OL.playerSlot === 'p1') ? 'p2Pick' : 'p1Pick';
+    OL.roomRef.child(rivalPickField).on('value', function(snap) {
+        var rivalPick = snap.val();
+        if (!rivalPick || !rivalPick.nm) return;
+        // Solo procesar si YO ya elegí (mi pick está en G.p1Pick)
+        if (G.p1Pick && G.mode === 'online' && !G.busy) {
+            var myCard = G.p1Pick;
+            G.p1Pick = null;
+            // Limpiar ambos picks en Firebase antes de ejecutar
+            var myPickField = (OL.playerSlot === 'p1') ? 'p1Pick' : 'p2Pick';
+            OL.roomRef.update({ p1Pick: null, p2Pick: null, round: (G.round + 1) });
+            $('olWaitScr').style.display = 'none';
+            executeBattle(myCard, rivalPick, 1);
+        }
+    });
+}
+
+/* ========== ESCUCHAR DESCONEXIÓN DEL RIVAL ========== */
+function olListenForDisconnect() {
+    if (!OL.roomRef) return;
+    OL.roomRef.child('status').on('value', function(snap) {
+        if (snap.val() === 'abandoned' && G.mode === 'online') {
+            toast('Tu rival se desconectó. ¡Ganaste por abandono!', 'w', 5000);
+            OL.roomRef.child('status').off();
+            setTimeout(function() {
+                G.j1Score = Math.max(G.j1Score, G.j2Score + 1);
+                endGame();
+            }, 2500);
+        }
+    });
+}
+
+/* ========== ENVIAR CARTA ONLINE ========== */
+function olSendCard(card) {
+    if (!OL.roomRef) return;
+    var myPickField = (OL.playerSlot === 'p1') ? 'p1Pick' : 'p2Pick';
+    G.p1Pick = card;
+    // Mostrar pantalla de espera
+    $('olWaitName').textContent = OL.rivalName;
+    $('olWaitScr').style.display = 'flex';
+    // Escribir en Firebase
+    var update = {};
+    update[myPickField] = card;
+    OL.roomRef.update(update);
+    // Chequear si el rival ya eligió
+    var rivalPickField = (OL.playerSlot === 'p1') ? 'p2Pick' : 'p1Pick';
+    OL.roomRef.child(rivalPickField).once('value', function(snap) {
+        var rivalPick = snap.val();
+        if (rivalPick && rivalPick.nm) {
+            // El rival ya había elegido antes que yo
+            G.p1Pick = null;
+            var myCard = card;
+            OL.roomRef.update({ p1Pick: null, p2Pick: null, round: (G.round + 1) });
+            $('olWaitScr').style.display = 'none';
+            executeBattle(myCard, rivalPick, 1);
+        }
+    });
+}
+
+/* ========== LIMPIAR ESTADO ONLINE AL SALIR ========== */
+function olCleanup() {
+    if (OL.roomRef) {
+        OL.roomRef.child('p2Pick').off();
+        OL.roomRef.child('p1Pick').off();
+        OL.roomRef.child('status').off();
+        if (OL.playerSlot) OL.roomRef.update({ status: 'abandoned' });
+        OL.roomRef = null;
+    }
+    OL.roomId = null;
+    OL.playerSlot = null;
+    $('olWaitScr').style.display = 'none';
+    OL.db && OL.db.ref('rooms').off();
+}
+
+/* ===== ESCAPE HTML (seguridad) ===== */
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
 </script>
 </body>
 </html>
